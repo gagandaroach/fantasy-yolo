@@ -11,7 +11,31 @@ import typer
 from pydantic import BaseModel
 
 import fantasy_yolo.tools  # noqa: F401  (importing registers the tools)
+from fantasy_yolo.creds import redact
 from fantasy_yolo.registry import Kind, ToolSpec, registered
+
+# Conditions a user causes and can fix. A stack trace helps nobody here (J-06),
+# and error text is redacted on the way out because it can quote a request (J-03).
+EXPECTED_ERRORS = (
+    FileNotFoundError,
+    PermissionError,
+    LookupError,
+    ValueError,
+)
+
+
+def _current_credentials():
+    """Best effort, so redaction still works when config itself is broken."""
+    try:
+        from fantasy_yolo.config import load_settings
+        from fantasy_yolo.creds import load_credentials
+
+        settings = load_settings()
+        if settings.credentials_file is None:
+            return None
+        return load_credentials(settings.credentials_file)
+    except Exception:
+        return None
 
 
 def render(result: object) -> str:
@@ -56,7 +80,12 @@ def _make_command(spec: ToolSpec):
     def command(**kwargs: object) -> None:
         if spec.kind is Kind.WRITE_EXECUTE and not kwargs.pop("yes", False):
             typer.confirm("This writes to your ESPN account. Continue?", abort=True)
-        typer.echo(render(spec.fn(**kwargs)))
+        try:
+            typer.echo(render(spec.fn(**kwargs)))
+        except EXPECTED_ERRORS as exc:
+            message = redact(str(exc).strip("'\""), _current_credentials())
+            typer.secho(f"error: {message}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1) from None
 
     command.__name__ = spec.name
     command.__doc__ = spec.description

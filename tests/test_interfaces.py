@@ -58,3 +58,16 @@ def test_cli_optional_week_becomes_an_option():
     group = typer.main.get_command(build_cli())
     params = {p.name for p in group.commands["roster"].params}
     assert {"week", "league"} <= params
+
+
+def test_cli_reports_expected_errors_without_a_traceback(tmp_path, monkeypatch):
+    """A missing config is a user condition, not a crash (J-06)."""
+    from typer.testing import CliRunner
+
+    monkeypatch.setenv("FANTASY_YOLO_CONFIG", str(tmp_path / "absent.json"))
+    import fantasy_yolo.tools  # noqa: F401
+
+    result = CliRunner().invoke(build_cli(), ["roster"])
+    assert result.exit_code == 1
+    assert "no config at" in result.output
+    assert "Traceback" not in result.output
