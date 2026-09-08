@@ -36,3 +36,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Network tests are opt-in: the default suite runs with no credentials and no
+# network (M-03). Run them with `-m network`.
+addopts = "-m 'not network'"
+markers = ["network: talks to ESPN; unauthenticated and side-effect free"]
