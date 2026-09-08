@@ -22,3 +22,6 @@ build/
 # Runtime state
 audit.log
 *.sqlite3
+
+# build artifacts
+dist/

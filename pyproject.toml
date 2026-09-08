@@ -6,20 +6,21 @@ keywords = [
     "fantasy-football", "espn", "espn-fantasy", "mcp", "model-context-protocol",
     "mcp-server", "agent", "llm", "fantasy-football-api", "espn-api", "nfl", "cli",
 ]
+# PEP 639 rather than a License classifier. A classifier leaves the License
+# metadata field UNKNOWN, which is exactly why an automated licence check cannot
+# read our own dependency espn-api (see M-17). license-files also ships the
+# vendored upstream licence in the wheel, which MIT requires when redistributing.
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-espn-api"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.13",
     "Topic :: Games/Entertainment",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-[project.urls]
-Homepage = "https://github.com/gagandaroach/fantasy-yolo"
-Documentation = "https://github.com/gagandaroach/fantasy-yolo/blob/main/docs/design.md"
-Issues = "https://github.com/gagandaroach/fantasy-yolo/issues"
 readme = "README.md"
 authors = [
     { name = "gagan", email = "gagandaroach@gmail.com" }
@@ -31,6 +32,11 @@ dependencies = [
     "requests>=2.34.2",
     "typer>=0.27.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/gagandaroach/fantasy-yolo"
+Documentation = "https://github.com/gagandaroach/fantasy-yolo/blob/main/docs/design.md"
+Issues = "https://github.com/gagandaroach/fantasy-yolo/issues"
 
 [project.scripts]
 fy = "fantasy_yolo.cli:main"
