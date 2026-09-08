@@ -71,5 +71,16 @@ def registered(include_writes: bool = True) -> list[ToolSpec]:
 
 
 def clear_registry() -> None:
-    """Test helper."""
+    """Test helper. Prefer snapshot()/restore() so module-level registrations survive."""
     _REGISTRY.clear()
+
+
+def snapshot() -> dict[str, ToolSpec]:
+    """Test helper: capture the registry so a test can register freely and put it back."""
+    return dict(_REGISTRY)
+
+
+def restore(snap: dict[str, ToolSpec]) -> None:
+    """Test helper: counterpart to snapshot()."""
+    _REGISTRY.clear()
+    _REGISTRY.update(snap)

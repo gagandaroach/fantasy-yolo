@@ -1,13 +1,15 @@
 import pytest
 
-from fantasy_yolo.registry import Kind, clear_registry, registered, tool
+from fantasy_yolo.registry import Kind, clear_registry, registered, restore, snapshot, tool
 
 
 @pytest.fixture(autouse=True)
 def _clean():
+    """Isolate each test without discarding tools registered at import time."""
+    saved = snapshot()
     clear_registry()
     yield
-    clear_registry()
+    restore(saved)
 
 
 def test_decorator_returns_function_unchanged():

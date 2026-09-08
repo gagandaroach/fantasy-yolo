@@ -76,6 +76,13 @@ class ReadClient:
         response.raise_for_status()
         return response.json(), response.headers
 
+    def my_team(self) -> Any:
+        """The pinned team. Never any other (A-04, J-05)."""
+        for team in self.league.teams:
+            if team.team_id == self.cfg.team_id:
+                return team
+        raise LookupError(f"team {self.cfg.team_id} is not in league {self.cfg.league_id}")
+
     def latest_scoring_period(self) -> int:
         """espn-api never parses league.status.latestScoringPeriod."""
         data, _ = self.raw(["mStatus"])
