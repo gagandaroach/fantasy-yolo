@@ -60,3 +60,31 @@ def test_resolve_team_reports_ambiguity_rather_than_guessing():
         assert "Team One" in str(exc) and "Team Two" in str(exc)
     else:
         raise AssertionError("expected LookupError")
+
+
+def test_all_rosters_flattens_every_team_into_owner_rows():
+    """One call instead of 14. Looping the CLI per team was the workaround."""
+    from fantasy_yolo.tools.teams import build_all_rosters
+
+    rows = build_all_rosters({"A": [_p("RB"), _p("WR")], "B": [_p("QB")]})
+    assert len(rows) == 3
+    assert {r.team for r in rows} == {"A", "B"}
+
+
+def test_all_rosters_can_be_filtered_to_positions():
+    from fantasy_yolo.tools.teams import build_all_rosters
+
+    rows = build_all_rosters({"A": [_p("RB"), _p("WR")]}, positions=["RB"])
+    assert [r.player.position for r in rows] == ["RB"]
+
+
+def test_position_filter_is_case_insensitive():
+    from fantasy_yolo.tools.teams import build_all_rosters
+
+    assert len(build_all_rosters({"A": [_p("RB")]}, positions=["rb"])) == 1
+
+
+def test_all_rosters_of_nothing_is_empty():
+    from fantasy_yolo.tools.teams import build_all_rosters
+
+    assert build_all_rosters({}) == []

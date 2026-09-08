@@ -12,7 +12,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from fantasy_yolo.context import get_client
-from fantasy_yolo.models import PlayerView, Response
+from fantasy_yolo.models import Page, PlayerView, Response
 from fantasy_yolo.read.weeks import provenance, resolve_week
 from fantasy_yolo.registry import Kind, tool
 from fantasy_yolo.tools.league import WaiverSystem, detect_waiver_system
@@ -24,6 +24,15 @@ class BudgetRow(BaseModel):
     faab_remaining: int | None
     waiver_rank: int | None
     acquisitions: int
+
+
+class OwnedPlayer(BaseModel):
+    team: str
+    player: PlayerView
+
+
+class AllRosters(Page):
+    rows: list[OwnedPlayer]
 
 
 class TeamRoster(Response):
@@ -44,6 +53,19 @@ class Budgets(Response):
 
 def position_counts(players: list[PlayerView]) -> dict[str, int]:
     return dict(Counter(p.position for p in players))
+
+
+def build_all_rosters(
+    by_team: dict[str, list[PlayerView]],
+    positions: list[str] | None = None,
+) -> list[OwnedPlayer]:
+    wanted = {p.upper() for p in positions} if positions else None
+    return [
+        OwnedPlayer(team=team, player=player)
+        for team, players in by_team.items()
+        for player in players
+        if wanted is None or player.position.upper() in wanted
+    ]
 
 
 def resolve_team(query: str, teams: list[Any]) -> Any:
@@ -133,4 +155,40 @@ def get_budgets(week: int | None = None, league: str | None = None) -> Budgets:
         provenance=provenance(client.cfg.year, resolved),
         system=system,
         rows=rows,
+    )
+
+
+@tool(kind=Kind.READ)
+def get_all_rosters(
+    positions: list[str] | None = None,
+    limit: int = 250,
+    offset: int = 0,
+    week: int | None = None,
+    league: str | None = None,
+) -> AllRosters:
+    """Every team's roster in one call, for trade shopping.
+
+    Filter by position to keep the answer small — a 14-team league is roughly
+    240 players, which is a lot to read at once. Says how many exist alongside
+    how many came back.
+    """
+    client = get_client(league)
+    resolved = resolve_week(week, client.latest_scoring_period())
+    by_team = {
+        t.team_name: [to_player_view(p, resolved) for p in t.roster]
+        for t in client.league.teams
+    }
+    rows = build_all_rosters(by_team, positions)
+    window = rows[offset : offset + limit]
+    return AllRosters(
+        summary=(
+            f"{len(window)} of {len(rows)} rostered players across "
+            f"{len(by_team)} teams"
+            + (f" ({', '.join(positions)})" if positions else "")
+        ),
+        provenance=provenance(client.cfg.year, resolved),
+        total=len(rows),
+        returned=len(window),
+        offset=offset,
+        rows=window,
     )

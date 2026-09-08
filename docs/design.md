@@ -510,19 +510,25 @@ reads → response contract → policy and audit → write client against the or
 
 Settled by doing, not by discussion:
 
-1. **Does an authenticated write succeed, and what does a 200 body look like?**
-   One captured `EXECUTED` response exists in public, in a commented-out block
-   in one repo. Everything downstream depends on this. Toggle-and-revert
-   settles it in five minutes.
+1. ~~**Does an authenticated write succeed, and what does a 200 body look
+   like?**~~ **SETTLED 2026-09-08.** A six-item batched `ROSTER` lineup write
+   against a live 14-team league returned HTTP 200 with
+   `{"status": "EXECUTED", "isPending": false, "id": "337c7ea1-...",
+   "proposedDate": ..., "rating": 0, "subOrder": 0}`, items echoed back with
+   `fromTeamId`/`toTeamId`/`isKeeper`/`overallPickNumber` the request never
+   sent. The token survived across two CLI processes, the re-read guard held,
+   and the audit log captured intent and outcome with `memberId` redacted.
+   There is no body-borne anti-forgery field (settling question 4 as well).
 2. **`FUTURE_ROSTER` end-to-end.** Accepted as an envelope type; no captured
    success anywhere. Set next week's lineup and read it back.
 3. **Waiver + `bidAmount` end-to-end**, and whether the response comes back
    `PENDING` until the waiver run.
-4. **Is there a body-borne anti-forgery field?** Cannot be ruled out from
-   unauthenticated `401`s, since a body field would be validated after auth.
-   The first authenticated write settles it.
-5. **Cookie casing** — `SWID` vs `swid`. Repos disagree. Standardize on
-   uppercase for the cookie and the braced value for `memberId`, and verify.
+4. ~~**Is there a body-borne anti-forgery field?**~~ **SETTLED 2026-09-08** —
+   no. The write above carried only the documented envelope keys and was
+   accepted.
+5. ~~**Cookie casing**~~ **SETTLED 2026-09-08** — uppercase `SWID` for the
+   cookie and the braced value for `memberId` both work against reads and a
+   real write.
 6. **`espn_s2` TTL.** Undocumented by anyone. Instrument the canary and learn
    it empirically.
 7. **Durability.** ESPN tightened `leagueHistory` in Aug 2025 and split hosts in

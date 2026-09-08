@@ -89,7 +89,7 @@ def preview_lineup(
             scoring_period=resolved,
             latest_period=latest,
         )
-        confirm = get_tokens().issue(payload)
+        confirm = get_tokens().issue(payload, intent={"start": list(start)})
 
     return LineupPreview(
         summary=format_preview_summary(moves, cannot_fit, names),
@@ -103,17 +103,28 @@ def preview_lineup(
 @tool(kind=Kind.WRITE_EXECUTE)
 def execute_lineup(
     confirm: str,
-    start: list[str],
+    start: list[str] | None = None,
     week: int | None = None,
     league: str | None = None,
 ) -> WriteOutcome:
     """Set your starting lineup. This writes to your ESPN account.
 
-    Requires the code from preview_lineup for this exact change. Your roster is
-    re-read immediately beforehand, and the write is refused if anything moved
-    since the preview. Nothing is ever retried.
+    Requires the code from preview_lineup for this exact change. Pass just the
+    code and the players are recovered from that preview; pass start to override.
+
+    Your roster is re-read immediately beforehand and the plan recomputed from
+    it, so the write is refused if anything moved since the preview. Nothing is
+    ever retried.
     """
     audit = get_audit(league)
+    if start is None:
+        remembered = get_tokens().intent(confirm)
+        if not remembered or "start" not in remembered:
+            raise LookupError(
+                f"confirmation code {confirm!r} is not recognised or has expired — "
+                "run preview_lineup again"
+            )
+        start = list(remembered["start"])
     # J-09: re-read and re-plan from current state, so a lineup set on your phone
     # between preview and execute is never silently clobbered. The token is bound
     # to the payload, so a changed roster produces a different payload and the

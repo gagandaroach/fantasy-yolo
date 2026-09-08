@@ -72,3 +72,25 @@ def test_the_store_never_holds_the_payload_itself(tmp_path):
     path = tmp_path / "pending.json"
     TokenStore(path, ttl_seconds=300).issue(PAYLOAD)
     assert "playerId" not in path.read_text()
+
+
+def test_a_token_can_carry_the_intent_that_produced_it(store):
+    """So execute does not make you retype nine player names after preview."""
+    token = store.issue(PAYLOAD, intent={"start": ["A", "B"]})
+    assert store.intent(token) == {"start": ["A", "B"]}
+
+
+def test_intent_is_readable_without_spending_the_token(store):
+    token = store.issue(PAYLOAD, intent={"start": ["A"]})
+    store.intent(token)
+    store.consume(token, PAYLOAD)
+
+
+def test_intent_is_absent_for_an_unknown_token(store):
+    assert store.intent("nonsense") is None
+
+
+def test_intent_expires_with_its_token(tmp_path):
+    store = TokenStore(tmp_path / "p.json", ttl_seconds=0)
+    token = store.issue(PAYLOAD, intent={"start": ["A"]})
+    assert store.intent(token) is None

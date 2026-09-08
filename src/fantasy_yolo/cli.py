@@ -73,7 +73,7 @@ def _typer_annotation(annotation: object) -> object:
     return annotation
 
 
-def _cli_signature(fn: object) -> inspect.Signature:
+def _cli_signature(fn: object, kind: Kind) -> inspect.Signature:
     # eval_str resolves the strings that `from __future__ import annotations`
     # leaves behind; without it every annotation is str and the rewrite misses.
     sig = inspect.signature(fn, eval_str=True)
@@ -81,6 +81,18 @@ def _cli_signature(fn: object) -> inspect.Signature:
         p.replace(annotation=_typer_annotation(p.annotation))
         for p in sig.parameters.values()
     ]
+    if kind is Kind.WRITE_EXECUTE:
+        # Without this the confirm prompt makes every write non-scriptable. It is
+        # an escape hatch for automation, not a removal of the gate: omit it and
+        # you are still asked.
+        params.append(
+            inspect.Parameter(
+                "yes",
+                inspect.Parameter.KEYWORD_ONLY,
+                default=False,
+                annotation=bool,
+            )
+        )
     return sig.replace(parameters=params, return_annotation=inspect.Signature.empty)
 
 
@@ -97,7 +109,7 @@ def _make_command(spec: ToolSpec):
 
     command.__name__ = spec.name
     command.__doc__ = spec.description
-    command.__signature__ = _cli_signature(spec.fn)
+    command.__signature__ = _cli_signature(spec.fn, spec.kind)
     return command
 
 

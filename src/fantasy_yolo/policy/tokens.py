@@ -69,12 +69,30 @@ class TokenStore:
         self.path.write_text(json.dumps(data, indent=2))
         self.path.chmod(0o600)
 
-    def issue(self, payload: dict[str, Any]) -> str:
+    def issue(self, payload: dict[str, Any], intent: dict[str, Any] | None = None) -> str:
+        """Issue a code for this payload.
+
+        `intent` is the human-level request that produced it — the names you
+        asked to start, not the payload — so execute can recompute from a fresh
+        read without making you retype it. It is short-lived, expires with the
+        token, and holds no player state beyond what you just typed.
+        """
         token = secrets.token_hex(TOKEN_BYTES)
         data = self._read()
-        data[token] = {"fingerprint": payload_fingerprint(payload), "issued_at": time.time()}
+        data[token] = {
+            "fingerprint": payload_fingerprint(payload),
+            "issued_at": time.time(),
+            "intent": intent or {},
+        }
         self._write(data)
         return token
+
+    def intent(self, token: str) -> dict[str, Any] | None:
+        """The request behind a live token, without spending it."""
+        entry = self._read().get(token)
+        if entry is None or time.time() - entry["issued_at"] > self.ttl:
+            return None
+        return entry.get("intent") or {}
 
     def consume(self, token: str, payload: dict[str, Any]) -> None:
         """Spend a token. Raises unless it matches this exact payload and is live."""

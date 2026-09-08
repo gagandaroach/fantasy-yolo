@@ -215,9 +215,16 @@ src/fantasy_yolo/
 
 ## Status
 
-Reads are working and verified against a live league. Writes are built and their
-payloads are validated by ESPN's own parser, but **no authenticated write has
-been fired yet** — see `docs/design.md` §14. Trades are designed, not built.
+Reads are working and verified against a live league.
+
+**Writes are proven.** A six-item batched lineup change against a live 14-team
+league returned `200 EXECUTED` on 2026-09-08. The confirmation token survived
+across two separate CLI processes, the re-read-before-write guard held, and the
+audit log captured intent and outcome with credentials redacted.
+
+Add/drop and waiver writes are built and their payloads validated by ESPN's own
+parser, but have not yet been fired authenticated. Trades are designed, not
+built.
 
 ## Before you use this
 

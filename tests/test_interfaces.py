@@ -84,3 +84,33 @@ def test_error_message_unwraps_key_error_repr():
     from fantasy_yolo.cli import error_message
 
     assert error_message(KeyError("no league named 'x'")) == "no league named 'x'"
+
+
+def test_execute_commands_expose_a_yes_flag():
+    """Without it the confirm prompt makes every write path non-scriptable."""
+    import typer.main
+
+    import fantasy_yolo.tools  # noqa: F401
+
+    group = typer.main.get_command(build_cli())
+    params = {p.name for p in group.commands["execute-lineup"].params}
+    assert "yes" in params
+
+
+def test_read_commands_have_no_yes_flag():
+    import typer.main
+
+    import fantasy_yolo.tools  # noqa: F401
+
+    group = typer.main.get_command(build_cli())
+    assert "yes" not in {p.name for p in group.commands["roster"].params}
+
+
+def test_a_write_without_yes_still_prompts(monkeypatch):
+    """The flag is an escape hatch for scripts, not a removal of the gate."""
+    from typer.testing import CliRunner
+
+    import fantasy_yolo.tools  # noqa: F401
+
+    result = CliRunner().invoke(build_cli(), ["execute-lineup", "abc123"], input="n\n")
+    assert result.exit_code != 0
