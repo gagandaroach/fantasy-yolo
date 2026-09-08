@@ -1,0 +1,24 @@
+# Secrets — espn_s2 is a full ESPN/Disney session cookie, not a scoped token.
+# Leaking it is account compromise, not a fantasy inconvenience.
+.env
+.env.*
+!.env.example
+*.cookies
+secrets.yaml
+!secrets.enc.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Runtime state
+audit.log
+*.sqlite3
