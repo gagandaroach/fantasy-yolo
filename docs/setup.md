@@ -22,8 +22,8 @@ way in is the two cookies your browser already has.
 
 ESPN publishes no expiry that software can read, so this tool records *when you
 supplied* the cookies and tells you how old they are (A-05). When they stop
-working you will get a clear "your login expired" rather than an empty roster
-(A-02).
+working, ESPN answers `401` and you get a clear message rather than an empty
+roster (A-02).
 
 ## 2. Store them in a file
 

@@ -29,7 +29,7 @@ These are ESPN's, not ours. Every subsequent decision is downstream of them.
 | **Body is deserialized before auth.** A well-formed unauthenticated POST returns `401`; a malformed one returns `400`. | Free, side-effect-free schema oracle for CI (§11.2). |
 | **Strict deserialization.** Any unknown envelope key `400`s. | Build payloads from an explicit allowlist, never by dumping a dict. |
 | **The read host also accepts `POST /transactions/`** and returns `401`, not `405`. | Host choice is not a safety barrier. Read-only-ness is enforced in our code (J-02). |
-| **`espn_s2` has no readable expiry.** The user pastes a value, not a cookie with attributes. | Track capture age (A-05); use the `X-Fantasy-Role` response header as a liveness canary (A-02). |
+| **`espn_s2` has no readable expiry.** The user pastes a value, not a cookie with attributes. | Track capture age (A-05). Detect a dead session from the **HTTP status** — `401`/`403` — not from `X-Fantasy-Role` (A-02); see below. |
 | **`scoringPeriodId` and `matchupPeriodId` diverge** in the playoffs and roll over mid-week. | Every week-sensitive call resolves and echoes its week (M-13). |
 
 ### 2.1 The write endpoint
@@ -39,6 +39,14 @@ POST https://lm-api-writes.fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/seg
 Content-Type: application/json          # mandatory — 415 without it
 Cookie: espn_s2=...; SWID={...}
 ```
+
+> **`X-Fantasy-Role` is not a liveness canary.** Measured against the live
+> league endpoint on 2026-09-08: an unauthenticated request returns `401` with
+> `X-Fantasy-Role: NONE`, and an authenticated request returns `200` with
+> `X-Fantasy-Role: NONE`. The header is present in both and identical in both,
+> so it cannot distinguish them. Earlier research established only the
+> unauthenticated half and inferred the rest; the inference was wrong. Use the
+> status code. The header is kept in error messages as a diagnostic breadcrumb.
 
 `x-fantasy-*` headers, `Origin`, `Referer` and `User-Agent` are optional and
 inert. There is no CSRF token — the preflight allows only `content-type`,
@@ -363,7 +371,9 @@ Exact-string matching breaks on the plural and LM variants.
 
 Distinguish `415` (content-type), `404` (path), `401` (auth — indistinguishable
 between absent, malformed and expired, so use the `X-Fantasy-Role` canary
-instead). `FAILED_ROSTERLOCK` is a real observed status.
+instead). `FAILED_ROSTERLOCK` is a real observed status. `401` on a read means an expired
+cookie or ids that do not belong to this account — say both, since they are
+indistinguishable from the response.
 
 Parse defensively: the accepted enum sets are open, not closed.
 
@@ -407,7 +417,8 @@ The write path is proven by a documented **manual canary**, run before each
 release and recorded in the release checklist:
 
 1. Unauthenticated POST — confirm `405` / `401` / `400`. Zero risk.
-2. Authenticated read — confirm `X-Fantasy-Role` flips from `NONE`.
+2. Authenticated read — confirm a `200` and real roster data. Do **not** expect
+   `X-Fantasy-Role` to change; it reads `NONE` either way.
 3. **Toggle-and-revert**: move one bench player to a starting slot and back,
    capturing both responses.
 

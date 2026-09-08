@@ -1,6 +1,6 @@
 import pytest
 
-from fantasy_yolo.read.client import ReadClient, slot_counts_from_settings
+from fantasy_yolo.read.client import ReadClient, auth_error_for, slot_counts_from_settings
 
 
 def test_slot_counts_come_from_the_raw_dict_keyed_by_slot_id():
@@ -22,7 +22,22 @@ def test_read_client_accepts_the_read_host():
     ReadClient.assert_read_host("https://lm-api-reads.fantasy.espn.com/x")
 
 
-def test_role_header_none_means_unauthenticated():
-    assert ReadClient.role_is_authenticated({"X-Fantasy-Role": "NONE"}) is False
-    assert ReadClient.role_is_authenticated({"X-Fantasy-Role": "MEMBER"}) is True
-    assert ReadClient.role_is_authenticated({}) is False
+def test_an_authenticated_200_is_not_treated_as_expired():
+    """Observed 2026-09-08: ESPN returns X-Fantasy-Role: NONE on authenticated
+    200s for the league endpoint, so the header cannot be the auth signal."""
+    assert auth_error_for(200, {"X-Fantasy-Role": "NONE"}) is None
+
+
+def test_401_explains_the_login_rather_than_the_league():
+    message = auth_error_for(401, {"X-Fantasy-Role": "NONE"})
+    assert message is not None
+    assert "expired" in message
+    assert "docs/setup.md" in message
+
+
+def test_403_is_also_an_auth_problem():
+    assert auth_error_for(403, {}) is not None
+
+
+def test_500_is_not_an_auth_problem():
+    assert auth_error_for(500, {}) is None

@@ -15,6 +15,28 @@ READ_HOST = "https://lm-api-reads.fantasy.espn.com"
 WRITE_HOST = "lm-api-writes"
 
 
+AUTH_STATUSES = (401, 403)
+
+
+def auth_error_for(status: int, headers: Mapping[str, str]) -> str | None:
+    """Explain an auth failure, or return None if this is not one (A-02).
+
+    The signal is the STATUS CODE, not X-Fantasy-Role. Measured against the live
+    league endpoint on 2026-09-08, that header is "NONE" on an authenticated 200
+    just as it is on an unauthenticated 401, so it cannot distinguish them. It is
+    kept in the message only as a diagnostic breadcrumb.
+    """
+    if status not in AUTH_STATUSES:
+        return None
+    role = headers.get("X-Fantasy-Role", "absent")
+    return (
+        "ESPN rejected your credentials (HTTP "
+        f"{status}, X-Fantasy-Role: {role}). Your espn_s2 cookie has most likely "
+        "expired, or the league id and team id do not belong to this account. "
+        "Refresh the cookie and check the ids — see docs/setup.md."
+    )
+
+
 def slot_counts_from_settings(raw: Mapping[str, Any]) -> dict[int, int]:
     """Raw lineupSlotCounts, keyed by slot id.
 
@@ -48,11 +70,6 @@ class ReadClient:
         if WRITE_HOST in url:
             raise ValueError(f"read client refuses the write host: {url}")
 
-    @staticmethod
-    def role_is_authenticated(headers: Mapping[str, str]) -> bool:
-        """X-Fantasy-Role reads NONE when unauthenticated — a free liveness canary (A-02)."""
-        return headers.get("X-Fantasy-Role", "NONE") != "NONE"
-
     def _endpoint(self) -> str:
         return (
             f"{READ_HOST}/apis/v3/games/ffl/seasons/{self.cfg.year}"
@@ -68,11 +85,9 @@ class ReadClient:
             cookies=self.creds.cookies(),
             timeout=30,
         )
-        if not self.role_is_authenticated(response.headers):
-            raise PermissionError(
-                "ESPN did not recognise your login (X-Fantasy-Role: NONE). "
-                "Your espn_s2 cookie has expired — refresh it. See docs/setup.md."
-            )
+        problem = auth_error_for(response.status_code, response.headers)
+        if problem is not None:
+            raise PermissionError(problem)
         response.raise_for_status()
         return response.json(), response.headers
 
