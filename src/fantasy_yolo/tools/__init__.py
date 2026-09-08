@@ -8,6 +8,16 @@ from fantasy_yolo.tools import (  # noqa: F401
     players,
     team,
     teams,
+    transactions,
 )
 
-__all__ = ["activity", "league", "lineup", "moves", "players", "team", "teams"]
+__all__ = [
+    "activity",
+    "league",
+    "lineup",
+    "moves",
+    "players",
+    "team",
+    "teams",
+    "transactions",
+]
