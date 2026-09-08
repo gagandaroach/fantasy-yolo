@@ -132,6 +132,7 @@
 - **M-15** As a software engineer, I want the server's own instructions to state what it does not know — no projections beyond ESPN's own number, no injury news, no timestamps, no news feed — so a model driving it is told once, up front, what it must not infer.
 - **M-16** As a software engineer, I want a documented request ceiling in config, one write in flight at a time, and backoff-and-retry on 429 and 5xx for reads only, so the program is a good API citizen without ever retrying a transaction.
 - **M-17** As a software engineer, I want CI to fail on any dependency whose license is not on an explicit allowlist, treating missing or ambiguous metadata as a failure clearable only by a recorded, dated manual exception, so a copyleft dependency can't slip in behind blank metadata.
+- **M-18** As a software engineer, I want every tool exposed as both an MCP tool and a CLI command from one definition, so I can exercise the whole program from a terminal without an MCP client, and the two interfaces cannot drift apart.
 
 ## Out of Scope
 
