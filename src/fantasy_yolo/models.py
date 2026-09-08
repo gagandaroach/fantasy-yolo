@@ -49,6 +49,10 @@ class PlayerView(BaseModel):
     """ESPN's own number for this week. None means ESPN gave none — which is not
     the same as a projection of zero, and must not be reported as one (M-15)."""
 
+    eligible_slots: list[str] = []
+    """Slot labels ESPN says this player may occupy. Drives legality checks and
+    lineup assignment (design §7.2)."""
+
     injury_status: str
     """Verbatim from ESPN. "UNKNOWN" means ESPN sent nothing; ESPN itself uses
     ACTIVE, NORMAL and DAY_TO_DAY inconsistently (B-02)."""

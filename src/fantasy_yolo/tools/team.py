@@ -81,6 +81,7 @@ def to_player_view(player: Any, week: int) -> PlayerView:
         pro_team=player.proTeam,
         opponent=_opponent(player, week),
         projected=_stat(player, week, "projected_points"),
+        eligible_slots=list(getattr(player, "eligibleSlots", []) or []),
         injury_status=getattr(player, "injuryStatus", None) or "UNKNOWN",
     )
 

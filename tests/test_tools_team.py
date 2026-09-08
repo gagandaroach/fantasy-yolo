@@ -64,10 +64,15 @@ def test_tools_are_registered_as_reads():
     assert names["get_matchup"] is Kind.READ
 
 
-def test_no_write_tools_exist_yet():
+def test_read_tools_are_never_filtered_out_by_read_only_mode():
+    """Replaces an earlier assertion that no write tools existed at all. They do
+    now, and the invariant that matters is that turning writes off leaves every
+    read intact (J-02)."""
     import fantasy_yolo.tools  # noqa: F401
 
-    assert registered(include_writes=False) == registered()
+    reads = {s.name for s in registered(include_writes=False)}
+    assert {"get_roster", "get_matchup", "check_lineup"} <= reads
+    assert all(s.kind is Kind.READ for s in registered(include_writes=False))
 
 
 class _FakePlayer:

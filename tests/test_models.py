@@ -40,5 +40,6 @@ def test_player_view_stays_flat():
         "pro_team",
         "opponent",
         "projected",
+        "eligible_slots",
         "injury_status",
     }
