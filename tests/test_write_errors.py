@@ -57,3 +57,52 @@ def test_a_401_is_rejected_not_unknown():
 
 def test_a_200_with_an_unrecognised_status_is_unknown():
     assert outcome_for(200, {"status": "WHAT"}) is Outcome.UNKNOWN
+
+
+# Captured from a real EXECUTED lineup write against league 2013746535, 2026 wk1
+# (txn 337c7ea1-a1dc-42ca-bcfe-34adbae5e4d4). The first authenticated write this
+# project ever made, and the fixture the success branch is built on.
+EXECUTED_BODY = {
+    "bidAmount": 0,
+    "executionType": "EXECUTE",
+    "id": "337c7ea1-a1dc-42ca-bcfe-34adbae5e4d4",
+    "isActingAsTeamOwner": False,
+    "isLeagueManager": False,
+    "isPending": False,
+    "proposedDate": 1788859039655,
+    "rating": 0,
+    "scoringPeriodId": 1,
+    "skipTransactionCounters": False,
+    "status": "EXECUTED",
+    "subOrder": 0,
+    "teamId": 8,
+    "type": "ROSTER",
+}
+
+
+def test_a_successful_write_is_not_described_as_a_refusal():
+    """The worst possible false alarm on a never-retry path: a user who reads
+    "ESPN refused this" after a write that landed will re-run it."""
+    got = explain(200, EXECUTED_BODY)
+    assert "refused" not in got.lower()
+    assert "applied" in got.lower() or "executed" in got.lower()
+
+
+def test_a_successful_write_quotes_its_transaction_id():
+    assert "337c7ea1-a1dc-42ca-bcfe-34adbae5e4d4" in explain(200, EXECUTED_BODY)
+
+
+def test_a_pending_write_says_it_is_pending_not_done():
+    body = {**EXECUTED_BODY, "status": "PENDING", "isPending": True}
+    got = explain(200, body).lower()
+    assert "pending" in got
+    assert "refused" not in got
+
+
+def test_isPending_true_is_pending_even_if_status_is_missing():
+    """ESPN sends isPending alongside status; trust it when status is absent."""
+    assert outcome_for(200, {"isPending": True}) is Outcome.PENDING
+
+
+def test_the_real_executed_body_reads_as_applied():
+    assert outcome_for(200, EXECUTED_BODY) is Outcome.APPLIED

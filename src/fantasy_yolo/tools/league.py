@@ -51,9 +51,24 @@ def detect_waiver_system(settings: dict[str, Any]) -> WaiverSystem:
     The write path branches on this: a bid field in a priority league is a
     malformed transaction, and on a platform with no dry run that costs a real
     move (F-05, B-07).
+
+    Do NOT read acquisitionBudget to decide. ESPN carries a non-zero budget in
+    rolling-priority leagues too — observed live: budget 100 alongside
+    isUsingAcquisitionBudget false and acquisitionType WAIVERS_TRADITIONAL. The
+    explicit flag is the answer; acquisitionType is the fallback; the budget is
+    a last resort for leagues that report neither.
     """
-    budget = settings.get("acquisitionBudget") or 0
-    return WaiverSystem.FAAB if int(budget) > 0 else WaiverSystem.PRIORITY
+    using_budget = settings.get("isUsingAcquisitionBudget")
+    if isinstance(using_budget, bool):
+        return WaiverSystem.FAAB if using_budget else WaiverSystem.PRIORITY
+
+    acquisition_type = str(settings.get("acquisitionType") or "")
+    if acquisition_type:
+        return WaiverSystem.FAAB if "BUDGET" in acquisition_type.upper() else WaiverSystem.PRIORITY
+
+    return WaiverSystem.FAAB if int(settings.get("acquisitionBudget") or 0) > 0 else (
+        WaiverSystem.PRIORITY
+    )
 
 
 def epoch_ms_to_local(value: int | None) -> datetime | None:

@@ -45,6 +45,22 @@ def _codes(body: dict[str, Any]) -> list[str]:
 
 def explain(status: int, body: dict[str, Any]) -> str:
     """A plain-language explanation, never a bare code (J-06)."""
+    # Success first. explain() runs on every response including 200s, and
+    # falling through to the refusal wording after a write that actually landed
+    # is the worst false alarm this codebase can produce: there is no
+    # idempotency key, so a user who believes it failed will submit it twice.
+    outcome = outcome_for(status, body)
+    if outcome is Outcome.APPLIED:
+        txn = body.get("id")
+        return "applied by ESPN" + (f" (transaction {txn})" if txn else "")
+    if outcome is Outcome.PENDING:
+        txn = body.get("id")
+        return (
+            "accepted by ESPN and pending — it has not happened yet, and will be "
+            "processed at your league's next waiver run"
+            + (f" (transaction {txn})" if txn else "")
+        )
+
     for code in _codes(body):
         for prefix, text in PREFIX_EXPLANATIONS:
             if code.startswith(prefix):
@@ -70,5 +86,9 @@ def outcome_for(status: int, body: dict[str, Any]) -> Outcome:
     if state == "EXECUTED":
         return Outcome.APPLIED
     if state in ("PENDING", "QUEUED"):
+        return Outcome.PENDING
+    # ESPN sends isPending alongside status; trust it when status is absent or
+    # unrecognised rather than calling a real pending claim unknown.
+    if body.get("isPending") is True:
         return Outcome.PENDING
     return Outcome.UNKNOWN

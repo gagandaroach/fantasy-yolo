@@ -117,3 +117,56 @@ def test_absent_injury_status_is_unknown_not_invented():
     from fantasy_yolo.tools.team import to_player_view
 
     assert to_player_view(_FakePlayer(injury=None), week=1).injury_status == "UNKNOWN"
+
+
+class _BoxPlayerLike:
+    """free_agents() returns BoxPlayer, which carries pro_opponent and leaves
+    schedule empty. Rosters return Player, which is the other way round."""
+
+    playerId = 1
+    name = "A Free Agent"
+    position = "D/ST"
+    lineupSlot = ""
+    proTeam = "KC"
+    injuryStatus = "ACTIVE"
+    eligibleSlots = ["D/ST"]
+    schedule = {}
+    stats = {1: {"projected_points": 8.76}}
+
+    def __init__(self, opponent="BUF", on_bye=False):
+        self.pro_opponent = opponent
+        self.on_bye_week = on_bye
+
+
+def test_a_free_agent_gets_an_opponent_from_pro_opponent():
+    """Streaming a K or D/ST is exactly the decision where the matchup matters
+    most, and free agents came back with opponent ''."""
+    from fantasy_yolo.tools.team import to_player_view
+
+    assert to_player_view(_BoxPlayerLike(), week=1).opponent == "BUF"
+
+
+def test_a_free_agent_on_bye_has_no_opponent():
+    from fantasy_yolo.tools.team import to_player_view
+
+    assert to_player_view(_BoxPlayerLike(opponent="BYE", on_bye=True), week=1).opponent == ""
+
+
+def test_a_rostered_player_still_reads_from_the_schedule():
+    """Player has no pro_opponent at all — not a None one — so the fallback has
+    to survive the attribute being absent."""
+    from fantasy_yolo.tools.team import to_player_view
+
+    class _PlayerLike:
+        playerId = 2
+        name = "A Rostered Player"
+        position = "RB"
+        lineupSlot = "RB"
+        proTeam = "KC"
+        injuryStatus = "ACTIVE"
+        eligibleSlots = ["RB"]
+        stats = {1: {"projected_points": 12.0}}
+        schedule = {"1": {"team": "LV"}}
+
+    assert not hasattr(_PlayerLike, "pro_opponent")
+    assert to_player_view(_PlayerLike(), week=1).opponent == "LV"

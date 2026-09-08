@@ -67,6 +67,20 @@ def _stat(player: Any, week: int, key: str) -> float | None:
 
 
 def _opponent(player: Any, week: int) -> str:
+    """The NFL opponent, from whichever shape espn-api handed us.
+
+    league.free_agents() returns BoxPlayer, which sets pro_opponent and leaves
+    schedule empty; team rosters return Player, which is the other way round.
+    Reading only schedule left every free agent with a blank opponent — exactly
+    the field you need when streaming a kicker or defence.
+    """
+    if getattr(player, "on_bye_week", False):
+        return ""
+
+    opponent = getattr(player, "pro_opponent", None)
+    if opponent and str(opponent).upper() not in ("BYE", "NONE"):
+        return str(opponent)
+
     schedule = getattr(player, "schedule", {}) or {}
     entry = schedule.get(str(week)) or schedule.get(week) or {}
     return str(entry.get("team", "") or "")
