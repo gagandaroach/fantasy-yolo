@@ -71,3 +71,16 @@ def test_cli_reports_expected_errors_without_a_traceback(tmp_path, monkeypatch):
     assert result.exit_code == 1
     assert "no config at" in result.output
     assert "Traceback" not in result.output
+
+
+def test_error_message_preserves_quoted_names():
+    """A quoted player name must survive intact — it is the thing the user typed."""
+    from fantasy_yolo.cli import error_message
+
+    assert error_message(LookupError("'Josh' matches several")) == "'Josh' matches several"
+
+
+def test_error_message_unwraps_key_error_repr():
+    from fantasy_yolo.cli import error_message
+
+    assert error_message(KeyError("no league named 'x'")) == "no league named 'x'"

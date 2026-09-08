@@ -38,6 +38,14 @@ def _current_credentials():
         return None
 
 
+def error_message(exc: BaseException) -> str:
+    """KeyError stringifies as repr(arg), wrapping the message in quotes. Only
+    that case needs unwrapping — stripping every message mangles quoted names."""
+    if isinstance(exc, KeyError) and exc.args:
+        return str(exc.args[0])
+    return str(exc)
+
+
 def render(result: object) -> str:
     if isinstance(result, BaseModel):
         return json.dumps(result.model_dump(mode="json"), indent=2, default=str)
@@ -83,7 +91,7 @@ def _make_command(spec: ToolSpec):
         try:
             typer.echo(render(spec.fn(**kwargs)))
         except EXPECTED_ERRORS as exc:
-            message = redact(str(exc).strip("'\""), _current_credentials())
+            message = redact(error_message(exc), _current_credentials())
             typer.secho(f"error: {message}", fg=typer.colors.RED, err=True)
             raise typer.Exit(code=1) from None
 
