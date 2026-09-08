@@ -100,7 +100,7 @@ def get_league(week: int | None = None, league: str | None = None) -> LeagueView
     system = detect_waiver_system(acquisition)
     budget = int(acquisition.get("acquisitionBudget") or 0)
 
-    from espn_api.football.constant import POSITION_MAP
+    from fantasy_yolo.espn.football.constant import POSITION_MAP
 
     slots = {
         POSITION_MAP.get(slot_id, str(slot_id)): count

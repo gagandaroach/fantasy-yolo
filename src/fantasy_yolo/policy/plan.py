@@ -14,8 +14,7 @@ The tiebreak rule, which is what keeps this on the right side of the line:
 
 from __future__ import annotations
 
-from espn_api.football.constant import POSITION_MAP
-
+from fantasy_yolo.espn.football.constant import POSITION_MAP
 from fantasy_yolo.models import PlayerView
 
 # espn-api's POSITION_MAP is bidirectional but its label->id half is INCOMPLETE:

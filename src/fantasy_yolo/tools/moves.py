@@ -11,9 +11,8 @@ what makes a crashed run safe to re-run on a platform with no idempotency key.
 
 from __future__ import annotations
 
-from espn_api.football.constant import POSITION_MAP
-
 from fantasy_yolo.context import get_audit, get_client, get_tokens, get_write_client
+from fantasy_yolo.espn.football.constant import POSITION_MAP
 from fantasy_yolo.models import Response
 from fantasy_yolo.policy.plan import Move, plan_lineup
 from fantasy_yolo.read.weeks import provenance, resolve_week

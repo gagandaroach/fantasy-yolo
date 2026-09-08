@@ -15,8 +15,14 @@ about a league accurately and executes roster instructions carefully.
 lineup, or decides a trade. Where a story sounds like judgment, it has been
 reduced to arithmetic over the league's own settings — see §4.3.
 
-Reads come from [`espn-api`](https://github.com/cwendt94/espn-api). Writes go
+Reads come from a vendored copy of
+[`espn-api`](https://github.com/cwendt94/espn-api) at `src/fantasy_yolo/espn/`
+(MIT, Christian Wendt; licence preserved at `LICENSE-espn-api`). Writes go
 through a client this project owns, because `espn-api` has none.
+
+It is vendored rather than depended on so defects in the read path can be fixed
+directly rather than worked around. Upstream changes are marked `fantasy-yolo:`;
+its own test suite runs in CI, so upstream behaviour stays green as we change it.
 
 ## 2. Platform constraints
 

@@ -11,10 +11,10 @@ from collections import Counter
 from datetime import datetime
 from typing import Any
 
-from espn_api.football.constant import POSITION_MAP
 from pydantic import BaseModel
 
 from fantasy_yolo.context import get_client
+from fantasy_yolo.espn.football.constant import POSITION_MAP
 from fantasy_yolo.models import PlayerView, Response
 from fantasy_yolo.read.weeks import provenance, resolve_week
 from fantasy_yolo.registry import Kind, tool

@@ -53,7 +53,21 @@ account compromise. Never paste it into an issue or a chat.
 
 ## Licence
 
-[MIT](LICENSE), covering this project's own code. It grants no rights to ESPN's
-data, marks, or API, and it is not permission from ESPN.
+[MIT](LICENSE). Permissive: use it, change it, ship it, sell it. The only thing
+it asks is that the copyright notice travels with the code.
 
-Reads are built on [`espn-api`](https://github.com/cwendt94/espn-api) (MIT).
+It covers this project's own code. It grants no rights to ESPN's data, marks, or
+API, and it is not permission from ESPN.
+
+### Vendored code
+
+`src/fantasy_yolo/espn/` is a vendored copy of
+[`espn-api`](https://github.com/cwendt94/espn-api) by Christian Wendt, also MIT.
+Its licence is preserved verbatim at [LICENSE-espn-api](LICENSE-espn-api), as
+MIT requires when redistributing.
+
+It is vendored rather than depended on so this project can fix defects in the
+read path directly — the first being a `POSITION_MAP` that could not convert a
+lineup slot label back to its id for bench, IR or flex, which made lineup writes
+impossible. Our changes to it are marked `fantasy-yolo:` in comments, and its own
+test suite runs in our CI.

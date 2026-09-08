@@ -6,10 +6,10 @@ from collections.abc import Mapping
 from typing import Any
 
 import requests
-from espn_api.football import League
 
 from fantasy_yolo.config import LeagueConfig
 from fantasy_yolo.creds import Credentials
+from fantasy_yolo.espn.football import League
 
 READ_HOST = "https://lm-api-reads.fantasy.espn.com"
 WRITE_HOST = "lm-api-writes"

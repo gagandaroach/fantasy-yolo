@@ -1,5 +1,6 @@
 name: CI
 on: [push, pull_request]
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -9,5 +10,15 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --all-extras --dev
-      - run: uv run ruff check .
-      - run: uv run pytest -v
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Our tests
+        run: uv run pytest --ignore=tests/vendored -v
+
+      # The vendored ESPN client is ours to maintain now, so its tests are ours
+      # to keep green. Unit only — the integration suite talks to live ESPN and
+      # runs on the canary schedule instead.
+      - name: Vendored ESPN client tests
+        run: uv run pytest tests/vendored -q

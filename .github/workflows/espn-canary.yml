@@ -1,0 +1,33 @@
+# Detects ESPN changing its API without notice.
+#
+# Extended from upstream espn-api's daily integration workflow. Upstream can
+# only canary reads; because this project owns a write client, the canary also
+# checks that ESPN still accepts the exact transaction payloads we would send —
+# using the unauthenticated schema oracle, which sends no credentials and
+# changes nothing.
+#
+# ESPN tightened leagueHistory in Aug 2025 and split read/write hosts in Apr
+# 2024, both silently. This is how we find out on the day rather than the first
+# time someone tries to set a lineup.
+name: ESPN API canary
+
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+      - run: uv sync --all-extras --dev
+
+      - name: Reads still parse (live, public leagues, no credentials)
+        run: uv run pytest tests/vendored/football/integration -v
+
+      - name: ESPN still accepts our write payloads (unauthenticated, no side effects)
+        run: uv run pytest -m network -v
