@@ -1,7 +1,25 @@
 [project]
 name = "fantasy-yolo"
 version = "0.1.0"
-description = "MCP server and CLI for your own ESPN Fantasy Football team"
+description = "Fantasy football agent server — MCP server and CLI for your own ESPN Fantasy Football team"
+keywords = [
+    "fantasy-football", "espn", "espn-fantasy", "mcp", "model-context-protocol",
+    "mcp-server", "agent", "llm", "fantasy-football-api", "espn-api", "nfl", "cli",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/gagandaroach/fantasy-yolo"
+Documentation = "https://github.com/gagandaroach/fantasy-yolo/blob/main/docs/design.md"
+Issues = "https://github.com/gagandaroach/fantasy-yolo/issues"
 readme = "README.md"
 authors = [
     { name = "gagan", email = "gagandaroach@gmail.com" }
