@@ -152,10 +152,23 @@ Fetched raw, or derived:
 - `league.status.latestScoringPeriod` — never parsed by `espn-api`, and the
   correct default for a write's `scoringPeriodId`. Using `currentMatchupPeriod`
   instead is a real bug in a published MCP server.
-- Raw `rosterSettings.lineupSlotCounts`, keyed by slot id. **Do not use
-  football's `Settings.position_slot_counts`** — it positionally zips
-  `list(POSITION_MAP.values())[:n]` against `lineupSlotCounts.values()`, so
-  labels and counts silently misalign.
+- Raw `rosterSettings.lineupSlotCounts`, keyed by slot id. Prefer it over
+  football's `Settings.position_slot_counts`, which zips
+  `list(POSITION_MAP.values())[:n]` positionally against
+  `lineupSlotCounts.values()`. **Measured 2026-09-08: that produces the correct
+  answer**, because ESPN returns 25 contiguous keys `"0".."24"` in order and
+  `POSITION_MAP`'s first 25 values are the labels for ids 0..24 in the same
+  order. The alignment is a coincidence of two orderings, not a lookup, and it
+  breaks silently if ESPN ever returns a sparse or reordered map. An earlier
+  draft of this document called it broken; that was wrong. Reading the raw dict
+  by key costs one line and does not depend on the coincidence.
+
+- A complete slot label -> id map. `POSITION_MAP` is bidirectional but its
+  label->id half is **incomplete**: `BE`, `IR` and `RB/WR/TE` are absent, so
+  `POSITION_MAP[POSITION_MAP[20]]` raises. `Player.lineupSlot` is produced from
+  the id->label half, so converting a slot label back to an id — which every
+  lineup write must do — silently yields `None` for bench, IR and flex. Invert
+  the id->label half instead. This one is a real defect, not a fragility.
 - Lineup lock state. Football's `Player` exposes no lock flags (baseball's
   does). Derive kickoff from the pro schedule and apply the league's lock rule.
 - Waiver-vs-free-agent status and clear time (F-11).
