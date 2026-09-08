@@ -61,8 +61,11 @@ API, and it is not permission from ESPN.
 
 ### Vendored code
 
-`src/fantasy_yolo/espn/` is a vendored copy of
+`src/fantasy_yolo/espn/` is a vendored copy of the football half of
 [`espn-api`](https://github.com/cwendt94/espn-api) by Christian Wendt, also MIT.
+Upstream covers five sports; this copy keeps football and the shared client, and
+`FANTASY_SPORTS` is trimmed to match so nothing can request a sport that has no
+client behind it.
 Its licence is preserved verbatim at [LICENSE-espn-api](LICENSE-espn-api), as
 MIT requires when redistributing.
 

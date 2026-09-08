@@ -15,7 +15,7 @@ about a league accurately and executes roster instructions carefully.
 lineup, or decides a trade. Where a story sounds like judgment, it has been
 reduced to arithmetic over the league's own settings — see §4.3.
 
-Reads come from a vendored copy of
+Reads come from a vendored copy of the football half of
 [`espn-api`](https://github.com/cwendt94/espn-api) at `src/fantasy_yolo/espn/`
 (MIT, Christian Wendt; licence preserved at `LICENSE-espn-api`). Writes go
 through a client this project owns, because `espn-api` has none.
