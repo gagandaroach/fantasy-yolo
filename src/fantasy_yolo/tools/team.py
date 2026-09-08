@@ -53,10 +53,17 @@ def build_roster_view(
     )
 
 
-def _stat(player: Any, week: int, key: str) -> float:
+def _stat(player: Any, week: int, key: str) -> float | None:
+    """None when ESPN has no entry. A real 0.0 is kept — ESPN projects an unfit
+    starter at zero, and that is data, not absence (M-15)."""
     stats = getattr(player, "stats", {}) or {}
-    entry = stats.get(week) or stats.get(str(week)) or {}
-    return float(entry.get(key, 0.0) or 0.0)
+    entry = stats.get(week)
+    if entry is None:
+        entry = stats.get(str(week))
+    if not entry or key not in entry:
+        return None
+    value = entry[key]
+    return None if value is None else float(value)
 
 
 def _opponent(player: Any, week: int) -> str:
@@ -74,7 +81,7 @@ def to_player_view(player: Any, week: int) -> PlayerView:
         pro_team=player.proTeam,
         opponent=_opponent(player, week),
         projected=_stat(player, week, "projected_points"),
-        injury_status=getattr(player, "injuryStatus", None) or "ACTIVE",
+        injury_status=getattr(player, "injuryStatus", None) or "UNKNOWN",
     )
 
 

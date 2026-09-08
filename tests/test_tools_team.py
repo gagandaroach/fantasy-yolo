@@ -68,3 +68,47 @@ def test_no_write_tools_exist_yet():
     import fantasy_yolo.tools  # noqa: F401
 
     assert registered(include_writes=False) == registered()
+
+
+class _FakePlayer:
+    """Minimal stand-in shaped like espn_api's Player."""
+
+    def __init__(self, stats=None, schedule=None, injury=None):
+        self.playerId = 1
+        self.name = "A Player"
+        self.position = "RB"
+        self.lineupSlot = "RB"
+        self.proTeam = "KC"
+        self.stats = stats if stats is not None else {}
+        self.schedule = schedule if schedule is not None else {}
+        self.injuryStatus = injury
+
+
+def test_a_real_zero_projection_is_kept():
+    """ESPN projects a DAY_TO_DAY starter at 0.0. That is data, not absence."""
+    from fantasy_yolo.tools.team import to_player_view
+
+    view = to_player_view(_FakePlayer(stats={1: {"projected_points": 0.0}}), week=1)
+    assert view.projected == 0.0
+
+
+def test_a_missing_projection_is_none_not_zero():
+    """Conflating "no projection" with "projected zero" invites a model to
+    narrate a bench-him conclusion ESPN never stated (M-15)."""
+    from fantasy_yolo.tools.team import to_player_view
+
+    assert to_player_view(_FakePlayer(stats={}), week=1).projected is None
+
+
+def test_injury_status_is_passed_through_verbatim():
+    """B-02: exactly as ESPN reports it."""
+    from fantasy_yolo.tools.team import to_player_view
+
+    assert to_player_view(_FakePlayer(injury="DAY_TO_DAY"), week=1).injury_status == "DAY_TO_DAY"
+
+
+def test_absent_injury_status_is_unknown_not_invented():
+    """ESPN also sends a literal "ACTIVE", so defaulting to it would forge one."""
+    from fantasy_yolo.tools.team import to_player_view
+
+    assert to_player_view(_FakePlayer(injury=None), week=1).injury_status == "UNKNOWN"

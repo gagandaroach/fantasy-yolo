@@ -45,8 +45,13 @@ class PlayerView(BaseModel):
     slot: str
     pro_team: str
     opponent: str
-    projected: float
+    projected: float | None
+    """ESPN's own number for this week. None means ESPN gave none — which is not
+    the same as a projection of zero, and must not be reported as one (M-15)."""
+
     injury_status: str
+    """Verbatim from ESPN. "UNKNOWN" means ESPN sent nothing; ESPN itself uses
+    ACTIVE, NORMAL and DAY_TO_DAY inconsistently (B-02)."""
 
 
 class RosterView(Response):
