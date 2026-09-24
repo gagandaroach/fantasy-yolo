@@ -106,9 +106,7 @@ class TokenStore:
         self._write(data)
 
         if time.time() - entry["issued_at"] > self.ttl:
-            raise ExpiredToken(
-                f"confirmation code {token!r} has expired — run the preview again"
-            )
+            raise ExpiredToken(f"confirmation code {token!r} has expired — run the preview again")
         if entry["fingerprint"] != payload_fingerprint(payload):
             raise TokenMismatch(
                 f"confirmation code {token!r} was issued for a different transaction — "

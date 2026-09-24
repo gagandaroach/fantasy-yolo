@@ -137,9 +137,7 @@ def build_lineup_moves(
         build_item(player_id=pid, type=ItemType.LINEUP, from_slot=src, to_slot=dst)
         for pid, src, dst in real
     ]
-    return build_envelope(
-        envelope_type, team_id, member_id, items, scoring_period=scoring_period
-    )
+    return build_envelope(envelope_type, team_id, member_id, items, scoring_period=scoring_period)
 
 
 def _add_drop_items(

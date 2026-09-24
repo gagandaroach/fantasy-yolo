@@ -57,8 +57,7 @@ def explain(status: int, body: dict[str, Any]) -> str:
         txn = body.get("id")
         return (
             "accepted by ESPN and pending — it has not happened yet, and will be "
-            "processed at your league's next waiver run"
-            + (f" (transaction {txn})" if txn else "")
+            "processed at your league's next waiver run" + (f" (transaction {txn})" if txn else "")
         )
 
     for code in _codes(body):

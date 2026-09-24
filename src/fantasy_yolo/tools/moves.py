@@ -47,9 +47,7 @@ def describe_moves(moves: list[Move], names: dict[int, str]) -> list[str]:
     ]
 
 
-def format_preview_summary(
-    moves: list[Move], cannot_fit: list[str], names: dict[int, str]
-) -> str:
+def format_preview_summary(moves: list[Move], cannot_fit: list[str], names: dict[int, str]) -> str:
     parts = [f"{len(moves)} move(s)"] if moves else ["no changes needed"]
     if cannot_fit:
         parts.append("could not fit: " + ", ".join(cannot_fit))

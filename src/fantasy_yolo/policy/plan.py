@@ -28,9 +28,7 @@ SLOT_IDS: dict[str, int] = {
     for slot, label in POSITION_MAP.items()
     if isinstance(slot, int) and isinstance(label, str) and label
 }
-SLOT_IDS.update(
-    {label: slot for label, slot in POSITION_MAP.items() if isinstance(label, str)}
-)
+SLOT_IDS.update({label: slot for label, slot in POSITION_MAP.items() if isinstance(label, str)})
 
 BENCH_SLOT = 20
 IR_SLOT = 21
@@ -63,8 +61,7 @@ def _resolve(name: str, roster: list[PlayerView]) -> PlayerView:
         raise CannotFit(f"{name!r} is not on your roster")
     if len(pool) > 1:
         raise CannotFit(
-            f"{name!r} matches several players — say which: "
-            + ", ".join(p.name for p in pool[:10])
+            f"{name!r} matches several players — say which: " + ", ".join(p.name for p in pool[:10])
         )
     return pool[0]
 

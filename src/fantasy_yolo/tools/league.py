@@ -60,8 +60,10 @@ def detect_waiver_system(settings: dict[str, Any]) -> WaiverSystem:
     if acquisition_type:
         return WaiverSystem.FAAB if "BUDGET" in acquisition_type.upper() else WaiverSystem.PRIORITY
 
-    return WaiverSystem.FAAB if int(settings.get("acquisitionBudget") or 0) > 0 else (
-        WaiverSystem.PRIORITY
+    return (
+        WaiverSystem.FAAB
+        if int(settings.get("acquisitionBudget") or 0) > 0
+        else (WaiverSystem.PRIORITY)
     )
 
 

@@ -1,4 +1,3 @@
-
 from fantasy_yolo.tools.activity import build_transaction_rows, summarise_pending
 
 
@@ -9,8 +8,6 @@ def test_pending_summary_counts_by_type():
 
 def test_pending_summary_of_nothing_is_empty():
     assert summarise_pending([]) == {}
-
-
 
 
 RAW_DRAFT = {

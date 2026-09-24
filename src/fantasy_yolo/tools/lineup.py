@@ -34,9 +34,7 @@ class LineupCheck(Response):
     starters_checked: int
 
 
-def empty_starting_slots(
-    players: list[PlayerView], slot_counts: dict[int, int]
-) -> dict[str, int]:
+def empty_starting_slots(players: list[PlayerView], slot_counts: dict[int, int]) -> dict[str, int]:
     """Starting slots the league requires that nobody is filling (B-05).
 
     Counted against the league's own lineupSlotCounts, keyed by slot id.

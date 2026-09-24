@@ -73,9 +73,10 @@ def test_the_flag_beats_the_budget_in_both_directions():
 
 def test_acquisition_type_is_used_when_the_flag_is_absent():
     assert detect_waiver_system({"acquisitionType": "WAIVERS_TRADITIONAL"}) is WaiverSystem.PRIORITY
-    assert detect_waiver_system(
-        {"acquisitionType": "WAIVERS_BUDGET", "acquisitionBudget": 50}
-    ) is WaiverSystem.FAAB
+    assert (
+        detect_waiver_system({"acquisitionType": "WAIVERS_BUDGET", "acquisitionBudget": 50})
+        is WaiverSystem.FAAB
+    )
 
 
 def test_with_neither_signal_a_budget_is_the_last_resort():

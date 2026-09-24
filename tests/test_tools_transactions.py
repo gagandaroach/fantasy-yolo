@@ -25,9 +25,7 @@ def test_write_tools_are_registered_with_the_right_kind(name, kind):
     assert _kinds()[name] is kind
 
 
-@pytest.mark.parametrize(
-    "name", ["execute_add_drop", "execute_waiver", "cancel_waiver"]
-)
+@pytest.mark.parametrize("name", ["execute_add_drop", "execute_waiver", "cancel_waiver"])
 def test_every_execute_demands_a_confirmation_code(name):
     from fantasy_yolo.tools import transactions
 

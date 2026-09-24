@@ -78,8 +78,7 @@ def _cli_signature(fn: object, kind: Kind) -> inspect.Signature:
     # leaves behind; without it every annotation is str and the rewrite misses.
     sig = inspect.signature(fn, eval_str=True)
     params = [
-        p.replace(annotation=_typer_annotation(p.annotation))
-        for p in sig.parameters.values()
+        p.replace(annotation=_typer_annotation(p.annotation)) for p in sig.parameters.values()
     ]
     if kind is Kind.WRITE_EXECUTE:
         # Without this the confirm prompt makes every write non-scriptable. It is

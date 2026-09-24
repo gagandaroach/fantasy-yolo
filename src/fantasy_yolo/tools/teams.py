@@ -97,7 +97,7 @@ def build_budget_rows(teams: list[Any], total_budget: int, faab: bool) -> list[B
     ]
     if faab:
         return sorted(rows, key=lambda r: -(r.faab_remaining or 0))
-    return sorted(rows, key=lambda r: (r.waiver_rank or 999))
+    return sorted(rows, key=lambda r: r.waiver_rank or 999)
 
 
 @tool(kind=Kind.READ)
@@ -175,16 +175,14 @@ def get_all_rosters(
     client = get_client(league)
     resolved = resolve_week(week, client.latest_scoring_period())
     by_team = {
-        t.team_name: [to_player_view(p, resolved) for p in t.roster]
-        for t in client.league.teams
+        t.team_name: [to_player_view(p, resolved) for p in t.roster] for t in client.league.teams
     }
     rows = build_all_rosters(by_team, positions)
     window = rows[offset : offset + limit]
     return AllRosters(
         summary=(
             f"{len(window)} of {len(rows)} rostered players across "
-            f"{len(by_team)} teams"
-            + (f" ({', '.join(positions)})" if positions else "")
+            f"{len(by_team)} teams" + (f" ({', '.join(positions)})" if positions else "")
         ),
         provenance=provenance(client.cfg.year, resolved),
         total=len(rows),

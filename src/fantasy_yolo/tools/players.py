@@ -112,7 +112,8 @@ def find_players(
         found.extend(to_player_view(p, resolved) for p in agents)
     if pool in (Pool.ROSTERED, Pool.ALL):
         found.extend(
-            view for _, view in _rostered(client, resolved)
+            view
+            for _, view in _rostered(client, resolved)
             if position is None or view.position == position
         )
     if position is not None:

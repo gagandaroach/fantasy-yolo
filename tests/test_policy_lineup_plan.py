@@ -44,9 +44,7 @@ def test_named_players_are_assigned_to_their_natural_slots():
 def test_the_overflow_runner_goes_to_flex_deterministically():
     """Three RBs, two RB slots and one flex: the third lands in flex, and which
     one is decided by the order named, never by projection."""
-    moves, unplaced = plan_lineup(
-        ROSTER, ["Runner One", "Runner Two", "Runner Three"], SLOTS
-    )
+    moves, unplaced = plan_lineup(ROSTER, ["Runner One", "Runner Two", "Runner Three"], SLOTS)
     assert unplaced == []
     placed = {m[0]: m[2] for m in moves}
     assert placed[ROSTER[3].player_id] == FLEX
