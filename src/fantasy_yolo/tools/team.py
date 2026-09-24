@@ -11,6 +11,7 @@ from typing import Any
 
 from fantasy_yolo.context import get_client
 from fantasy_yolo.models import PlayerView, Response, RosterView
+from fantasy_yolo.policy.plan import IR_SLOT
 from fantasy_yolo.read.weeks import provenance, resolve_week
 from fantasy_yolo.registry import Kind, tool
 
@@ -39,17 +40,21 @@ def build_roster_view(
     """B-01, B-08. Counts are arithmetic over the league's own settings, not judgment."""
     starters, bench = split_starters(players)
     counts = Counter(p.position for p in players)
-    capacity = sum(slot_counts.values())
+    ir_capacity = slot_counts.get(IR_SLOT, 0)
+    capacity = sum(slot_counts.values()) - ir_capacity
+    on_ir = sum(1 for p in players if p.slot == "IR")
+    open_spots = capacity - (len(players) - on_ir)
+    summary = f"{len(starters)} starters, {len(bench)} bench, {open_spots} open of {capacity}"
+    if ir_capacity:
+        summary += f"; IR {on_ir} of {ir_capacity} used"
     return RosterView(
-        summary=(
-            f"{len(starters)} starters, {len(bench)} bench, "
-            f"{capacity - len(players)} open of {capacity}"
-        ),
+        summary=summary,
         provenance=provenance(season, week),
         starters=starters,
         bench=bench,
         counts_by_position=dict(counts),
-        open_roster_spots=capacity - len(players),
+        open_roster_spots=open_spots,
+        open_ir_spots=ir_capacity - on_ir,
     )
 
 

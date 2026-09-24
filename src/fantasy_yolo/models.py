@@ -63,3 +63,5 @@ class RosterView(Response):
     bench: list[PlayerView]
     counts_by_position: dict[str, int]
     open_roster_spots: int
+    """Room for an add. IR is left out: ESPN never places an add there."""
+    open_ir_spots: int

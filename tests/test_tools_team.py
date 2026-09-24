@@ -170,3 +170,32 @@ def test_a_rostered_player_still_reads_from_the_schedule():
 
     assert not hasattr(_PlayerLike, "pro_opponent")
     assert to_player_view(_PlayerLike(), week=1).opponent == "LV"
+
+
+IR_SLOT = 21
+
+
+def test_an_empty_ir_slot_is_not_reported_as_an_open_spot():
+    """A full bench with IR empty once read as "1 open of 17", and an add was
+    attempted on the strength of it. ESPN never places an add in IR."""
+    view = build_roster_view(
+        players=[_p("A", "RB"), _p("B", "BE")],
+        slot_counts={2: 1, BENCH_SLOT: 1, IR_SLOT: 1},
+        season=2026,
+        week=1,
+    )
+    assert view.open_roster_spots == 0
+    assert view.open_ir_spots == 1
+    assert "0 open of 2" in view.summary
+    assert "IR" in view.summary
+
+
+def test_a_player_on_ir_does_not_use_an_open_spot():
+    view = build_roster_view(
+        players=[_p("A", "RB"), _p("C", "IR")],
+        slot_counts={2: 1, BENCH_SLOT: 1, IR_SLOT: 1},
+        season=2026,
+        week=1,
+    )
+    assert view.open_roster_spots == 1
+    assert view.open_ir_spots == 0
