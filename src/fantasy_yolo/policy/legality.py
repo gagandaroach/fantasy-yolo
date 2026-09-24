@@ -11,8 +11,7 @@ it was fine.
 
 from __future__ import annotations
 
-from fantasy_yolo.models import PlayerView
-from fantasy_yolo.tools.league import WaiverSystem
+from fantasy_yolo.models import PlayerView, WaiverSystem
 
 BENCH_LIKE = {20, 21}
 IR_SLOT = 21

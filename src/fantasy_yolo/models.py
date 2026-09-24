@@ -8,8 +8,17 @@ so a naive roster dump is tens of kilobytes.
 from __future__ import annotations
 
 from datetime import datetime
+from enum import StrEnum
 
 from pydantic import BaseModel
+
+
+class WaiverSystem(StrEnum):
+    """Here rather than in tools.league so policy can use it without importing
+    the tools package, which imports policy back."""
+
+    FAAB = "faab"
+    PRIORITY = "priority"
 
 
 class Provenance(BaseModel):

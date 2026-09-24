@@ -8,20 +8,14 @@ this tool exists to prevent.
 from __future__ import annotations
 
 from datetime import datetime
-from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel
 
 from fantasy_yolo.context import get_client
-from fantasy_yolo.models import Response
+from fantasy_yolo.models import Response, WaiverSystem
 from fantasy_yolo.read.weeks import provenance, resolve_week
 from fantasy_yolo.registry import Kind, tool
-
-
-class WaiverSystem(StrEnum):
-    FAAB = "faab"
-    PRIORITY = "priority"
 
 
 class StandingsRow(BaseModel):

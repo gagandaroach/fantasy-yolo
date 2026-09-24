@@ -124,3 +124,14 @@ def test_dropping_a_player_off_ir_does_not_free_an_active_spot():
     roster = _roster(10) + [hurt]
     problems = check_add_drop(roster, IR_SLOTS, adding=_p("New"), dropping=hurt)
     assert any("full" in p.lower() for p in problems)
+
+
+@pytest.mark.parametrize("module", ["fantasy_yolo.policy.legality", "fantasy_yolo.policy.plan"])
+def test_policy_imports_cold_without_a_cycle(module):
+    """policy once imported from tools, whose package imports policy back. It
+    only failed when a policy module was the first thing loaded, so it hid in a
+    full test run; a fresh interpreter is the only honest check."""
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-c", f"import {module}"], check=True)
