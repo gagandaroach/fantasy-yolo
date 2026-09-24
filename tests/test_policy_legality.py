@@ -97,3 +97,30 @@ def test_no_bid_in_a_priority_league_is_correct():
 @pytest.mark.parametrize("bid", [-1, -100])
 def test_negative_bids_are_refused(bid):
     assert check_bid(WaiverSystem.FAAB, bid=bid, remaining=100, minimum=0) != []
+
+
+# ESPN places every add on the bench, never in IR. An empty IR slot is not room
+# for a healthy pickup — counting it as room once gave a clean preview for an add
+# ESPN then rejected with "roster is full".
+IR_SLOTS = {0: 1, 2: 2, 4: 2, 20: 5, 21: 1}  # 10 active + 1 IR
+
+
+def _on_ir(name):
+    return _p(name).model_copy(update={"slot": "IR"})
+
+
+def test_an_empty_ir_slot_is_not_room_for_an_add():
+    problems = check_add_drop(_roster(10), IR_SLOTS, adding=_p("New"), dropping=None)
+    assert any("full" in p.lower() for p in problems)
+
+
+def test_a_player_on_ir_does_not_take_an_active_spot():
+    roster = _roster(9) + [_on_ir("Hurt")]
+    assert check_add_drop(roster, IR_SLOTS, adding=_p("New"), dropping=None) == []
+
+
+def test_dropping_a_player_off_ir_does_not_free_an_active_spot():
+    hurt = _on_ir("Hurt")
+    roster = _roster(10) + [hurt]
+    problems = check_add_drop(roster, IR_SLOTS, adding=_p("New"), dropping=hurt)
+    assert any("full" in p.lower() for p in problems)

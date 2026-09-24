@@ -73,6 +73,21 @@ def _resolve_pair(client, roster, week, add: str | None, drop: str | None):
     return adding, dropping
 
 
+def _recall(confirm: str, preview: str) -> dict:
+    """The players named at preview time, so the code alone is enough to execute.
+
+    Only the request is recovered; the roster is still re-read and the payload
+    rebuilt, and the token is bound to that payload, so anything that moved since
+    the preview refuses the confirmation rather than applying it elsewhere.
+    """
+    remembered = get_tokens().intent(confirm)
+    if not remembered:
+        raise LookupError(
+            f"confirmation code {confirm!r} is not recognised or has expired — run {preview} again"
+        )
+    return remembered
+
+
 def _outcome(tool_name: str, payload, league: str | None, client, resolved) -> WriteOutcome:
     audit = get_audit(league)
     audit.intent(tool_name, payload)
@@ -117,7 +132,7 @@ def preview_add_drop(
             drop_player=dropping.player_id if dropping else None,
             scoring_period=resolved,
         )
-        confirm = get_tokens().issue(payload)
+        confirm = get_tokens().issue(payload, intent={"add": add, "drop": drop})
 
     parts = []
     if adding:
@@ -145,9 +160,13 @@ def execute_add_drop(
 ) -> WriteOutcome:
     """Add and/or drop a player. This writes to your ESPN account.
 
-    Requires the code from preview_add_drop for this exact change. A drop is
-    irreversible. Nothing is ever retried.
+    Requires the code from preview_add_drop for this exact change. Pass just the
+    code and the players are recovered from that preview; pass add or drop to
+    override. A drop is irreversible. Nothing is ever retried.
     """
+    if add is None and drop is None:
+        remembered = _recall(confirm, "preview_add_drop")
+        add, drop = remembered.get("add"), remembered.get("drop")
     client, resolved, roster = _context(league, week)
     adding, dropping = _resolve_pair(client, roster, resolved, add, drop)
     problems = check_add_drop(roster, client.lineup_slot_counts(), adding, dropping)
@@ -195,7 +214,7 @@ def preview_waiver(
             bid=bid,
             scoring_period=resolved,
         )
-        confirm = get_tokens().issue(payload)
+        confirm = get_tokens().issue(payload, intent={"add": add, "drop": drop, "bid": bid})
 
     detail = f"claim {adding.name}" if adding else "claim"
     if bid is not None:
@@ -216,7 +235,7 @@ def preview_waiver(
 @tool(kind=Kind.WRITE_EXECUTE)
 def execute_waiver(
     confirm: str,
-    add: str,
+    add: str | None = None,
     drop: str | None = None,
     bid: int | None = None,
     week: int | None = None,
@@ -224,10 +243,18 @@ def execute_waiver(
 ) -> WriteOutcome:
     """Submit a waiver claim. This writes to your ESPN account.
 
-    Requires the code from preview_waiver for this exact claim. The claim sits
-    pending until your league's waiver run — pending is not success. Nothing is
-    ever retried.
+    Requires the code from preview_waiver for this exact claim. Pass just the
+    code and the claim is recovered from that preview; pass add to override. The
+    claim sits pending until your league's waiver run — pending is not success.
+    Nothing is ever retried.
     """
+    if add is None:
+        remembered = _recall(confirm, "preview_waiver")
+        add, drop, bid = remembered.get("add"), remembered.get("drop"), remembered.get("bid")
+        if add is None:
+            raise LookupError(
+                f"confirmation code {confirm!r} carries no claim — run preview_waiver again"
+            )
     client, resolved, roster = _context(league, week)
     adding, dropping = _resolve_pair(client, roster, resolved, add, drop)
     system, remaining, minimum = _waiver_settings(client)

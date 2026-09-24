@@ -15,10 +15,18 @@ from fantasy_yolo.models import PlayerView
 from fantasy_yolo.tools.league import WaiverSystem
 
 BENCH_LIKE = {20, 21}
+IR_SLOT = 21
 
 
 def roster_capacity(slot_counts: dict[int, int]) -> int:
     return sum(slot_counts.values())
+
+
+def active_capacity(slot_counts: dict[int, int]) -> int:
+    """Room for a healthy player. ESPN places every add on the bench, never in IR,
+    so an empty IR slot is not room for a pickup — ESPN rejects the add as a full
+    roster, and counting it here once gave a clean preview for exactly that."""
+    return roster_capacity(slot_counts) - slot_counts.get(IR_SLOT, 0)
 
 
 def check_add_drop(
@@ -41,11 +49,13 @@ def check_add_drop(
         problems.append(f"{dropping.name} is not on your roster")
 
     if adding is not None:
-        after = len(roster) + 1 - (1 if dropping is not None else 0)
-        capacity = roster_capacity(slot_counts)
+        active = [p for p in roster if p.slot != "IR"]
+        frees_a_spot = dropping is not None and dropping.slot != "IR"
+        after = len(active) + 1 - (1 if frees_a_spot else 0)
+        capacity = active_capacity(slot_counts)
         if after > capacity:
             problems.append(
-                f"your roster is full ({len(roster)} of {capacity}) — "
+                f"your roster is full ({len(active)} of {capacity}, not counting IR) — "
                 "drop someone in the same transaction"
             )
     return problems

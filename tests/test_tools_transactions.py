@@ -69,3 +69,43 @@ def test_summary_lists_every_legality_problem_not_just_the_first():
 
     got = format_problems(["roster is full", "already on your roster"])
     assert "roster is full" in got and "already on your roster" in got
+
+
+@pytest.fixture
+def tokens(tmp_path, monkeypatch):
+    from fantasy_yolo.policy.tokens import TokenStore
+    from fantasy_yolo.tools import transactions
+
+    store = TokenStore(tmp_path / "pending.json", ttl_seconds=300)
+    monkeypatch.setattr(transactions, "get_tokens", lambda: store)
+    return store
+
+
+def test_the_code_alone_recovers_the_players_from_the_preview(tokens):
+    """Like execute_lineup: the code carries the request, so nothing is retyped."""
+    from fantasy_yolo.tools.transactions import _recall
+
+    code = tokens.issue({"p": 1}, intent={"add": "Kaleb Johnson", "drop": "Sam Darnold"})
+    assert _recall(code, "preview_add_drop") == {"add": "Kaleb Johnson", "drop": "Sam Darnold"}
+
+
+def test_recall_refuses_an_unknown_code(tokens):
+    from fantasy_yolo.tools.transactions import _recall
+
+    with pytest.raises(LookupError, match="preview_waiver"):
+        _recall("deadbeef", "preview_waiver")
+
+
+def test_recall_refuses_a_code_that_carries_no_request(tokens):
+    """A code from before intents were carried must not execute as 'nothing'."""
+    from fantasy_yolo.tools.transactions import _recall
+
+    code = tokens.issue({"p": 1})
+    with pytest.raises(LookupError):
+        _recall(code, "preview_add_drop")
+
+
+def test_execute_waiver_no_longer_demands_the_player_be_retyped():
+    from fantasy_yolo.tools.transactions import execute_waiver
+
+    assert inspect.signature(execute_waiver).parameters["add"].default is None
