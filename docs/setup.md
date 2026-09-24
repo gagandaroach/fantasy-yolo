@@ -82,6 +82,15 @@ uv run fy matchup
 
 ## 6. Point an MCP client at it
 
+**Claude Code:**
+
+```bash
+claude mcp add fantasy-yolo -- uv run --directory /path/to/fantasy-yolo fantasy-yolo-mcp
+```
+
+**Claude Desktop, Cursor, and other MCP clients** — add this to the client's MCP
+config (Claude Desktop: Settings → Developer → Edit Config):
+
 ```json
 {
   "mcpServers": {
@@ -93,4 +102,13 @@ uv run fy matchup
 }
 ```
 
-Note there are no credentials in this stanza. That is deliberate.
+Note there are no credentials in either. That is deliberate.
+
+Then ask it something: *"anything wrong with my lineup this week?"*
+
+## 7. Turning on writes
+
+When you are ready for it to make moves, set `"write_enabled": true` in
+`config.json` and restart your MCP client. Every write is a preview followed by
+an execute with the preview's confirmation code; see
+[How writes are made safe](../README.md#how-writes-are-made-safe).

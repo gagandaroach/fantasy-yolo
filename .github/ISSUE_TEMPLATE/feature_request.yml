@@ -1,0 +1,20 @@
+name: Feature request
+description: A question you want answered or a move you want made
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This tool answers questions and executes instructions; it does not decide for you. Requests for an optimizer, rankings or start/sit advice are out of scope — see [Why no optimizer](https://github.com/gagandaroach/fantasy-yolo#why-no-optimizer).
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you want to ask or do?
+      description: Phrase it the way you'd ask it — "who in my league is thin at TE?"
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you get this today?
+      description: In the ESPN app, or with the existing tools.

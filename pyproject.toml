@@ -1,10 +1,11 @@
 [project]
 name = "fantasy-yolo"
 version = "0.1.0"
-description = "Fantasy football agent server — MCP server and CLI for your own ESPN Fantasy Football team"
+description = "ESPN Fantasy Football MCP server and CLI — manage your own team from Claude, any MCP client, or the terminal"
 keywords = [
     "fantasy-football", "espn", "espn-fantasy", "mcp", "model-context-protocol",
     "mcp-server", "agent", "llm", "fantasy-football-api", "espn-api", "nfl", "cli",
+    "espn-fantasy-football", "fantasy-sports", "claude", "claude-code", "ai-agent",
 ]
 # PEP 639 rather than a License classifier. A classifier leaves the License
 # metadata field UNKNOWN, which is exactly why an automated licence check cannot
@@ -16,6 +17,8 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.13",
     "Topic :: Games/Entertainment",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -35,8 +38,11 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/gagandaroach/fantasy-yolo"
-Documentation = "https://github.com/gagandaroach/fantasy-yolo/blob/main/docs/design.md"
+Documentation = "https://github.com/gagandaroach/fantasy-yolo/blob/main/docs/setup.md"
+Design = "https://github.com/gagandaroach/fantasy-yolo/blob/main/docs/design.md"
+Source = "https://github.com/gagandaroach/fantasy-yolo"
 Issues = "https://github.com/gagandaroach/fantasy-yolo/issues"
+Changelog = "https://github.com/gagandaroach/fantasy-yolo/blob/main/CHANGELOG.md"
 
 [project.scripts]
 fy = "fantasy_yolo.cli:main"

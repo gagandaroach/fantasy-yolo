@@ -1,24 +1,44 @@
-# fantasy-yolo
+# fantasy-yolo — ESPN Fantasy Football MCP server and CLI
 
-**A fantasy football agent server.** An [MCP](https://modelcontextprotocol.io)
-server and a matching CLI that let you — or an agent you run — read and manage
-your own ESPN Fantasy Football team.
+**Manage your ESPN Fantasy Football team from Claude, or any MCP client, or
+your terminal.** An [MCP](https://modelcontextprotocol.io) server and a matching
+CLI that read your league's live data and make the moves you tell it to: set
+your lineup, add and drop players, submit waiver claims.
 
 [![CI](https://github.com/gagandaroach/fantasy-yolo/actions/workflows/ci.yml/badge.svg)](https://github.com/gagandaroach/fantasy-yolo/actions/workflows/ci.yml)
 [![ESPN canary](https://github.com/gagandaroach/fantasy-yolo/actions/workflows/espn-canary.yml/badge.svg)](https://github.com/gagandaroach/fantasy-yolo/actions/workflows/espn-canary.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)
+
+> **You:** anything wrong with my lineup this week?
+>
+> **Agent:** Nothing flagged across your 9 starters. Two bench players project
+> higher than the starter at their position: Kyler Murray (17.34) over Jordan
+> Love (17.28) at QB, and Trey Smack (9.21) over Harrison Butker (9.05) at K.
+>
+> **You:** start Smack. Then grab Kaleb Johnson and drop Darnold.
+>
+> **Agent:** Preview: Smack BE → K, Butker K → BE. Add Kaleb Johnson (RB, GB),
+> drop Sam Darnold (QB, SEA). Confirm? … Both applied by ESPN.
+
+The same tools from the terminal — every answer carries a one-line `summary`
+and says which season and week it resolved:
 
 ```console
 $ fy check-lineup
-1 thing(s) to look at across 9 starters
-  projected_zero: Josh Jacobs (RB/WR/TE) is projected 0.0 points by ESPN
+{
+  "summary": "nothing flagged across 9 starters",
+  "provenance": { "season": 2026, "week_resolved": 3, ... },
+  "alerts": [],
+  "starters_checked": 9
+}
 
 $ fy player "Saquon Barkley"
-Saquon Barkley (RB, PHI) is rostered by The white Bhatoyas
+{
+  "summary": "Saquon Barkley (RB, PHI) is rostered by Gridiron Gremlins",
+  ...
+}
 ```
-
-Ask an agent *"anything wrong with my lineup this week?"* or *"who has Saquon,
-and what are they thin at?"* and get an answer from live league data.
 
 ---
 
@@ -32,7 +52,7 @@ points; it will never tell you to bench him.
 That is a deliberate constraint, not a missing feature. See
 [Why no optimizer](#why-no-optimizer).
 
-## Install
+## Quick start
 
 Needs Python 3.13 and [uv](https://docs.astral.sh/uv/).
 
@@ -40,13 +60,25 @@ Needs Python 3.13 and [uv](https://docs.astral.sh/uv/).
 git clone https://github.com/gagandaroach/fantasy-yolo
 cd fantasy-yolo
 uv sync
-uv run fy --help
 ```
 
 Then follow **[docs/setup.md](docs/setup.md)** — two cookies out of your browser
-and a small config file naming your league. Five minutes.
+and a small config file naming your league. Five minutes. Check it with:
 
-### As an MCP server
+```bash
+uv run fy roster
+```
+
+### Claude Code
+
+```bash
+claude mcp add fantasy-yolo -- uv run --directory /path/to/fantasy-yolo fantasy-yolo-mcp
+```
+
+### Claude Desktop, Cursor, and other MCP clients
+
+Add this to your client's MCP config — for Claude Desktop that is
+`claude_desktop_config.json` (Settings → Developer → Edit Config):
 
 ```json
 {
@@ -59,8 +91,11 @@ and a small config file naming your league. Five minutes.
 }
 ```
 
-No credentials in that stanza — deliberately. They live in a `chmod 0600` file
-the config points at.
+No credentials in either — deliberately. They live in a `chmod 0600` file the
+config points at.
+
+Writes are **off** until you set `write_enabled: true` in your config. Start
+read-only; turn writes on once you trust what you see.
 
 ## Tools
 
@@ -80,6 +115,7 @@ definition, so the two cannot drift apart.
 | `get_player` | `fy player NAME` | One player, and which team rosters them |
 | `get_team` | `fy team NAME` | Another team's roster |
 | `get_position_counts` | `fy position-counts` | Every team's positional shape, for trade shopping |
+| `get_all_rosters` | `fy all-rosters` | Every team's roster in one call, filterable by position |
 | `get_transactions` | `fy transactions` | The league's transaction log, filterable |
 | `get_pending` | `fy pending` | Your claims and trades ESPN hasn't processed yet |
 
@@ -208,7 +244,7 @@ src/fantasy_yolo/
   read/       read wrappers + the raw fetches espn-api misses
   write/      payload builders, never-retry client, error interpretation
   policy/     lineup planner, legality, confirm tokens, audit log
-  tools/      the 19 tools
+  tools/      the 20 tools
   cli.py      Typer frontend      ─┐ both generated from one registry,
   mcp/        MCP frontend        ─┘ so they cannot drift
 ```
@@ -222,9 +258,12 @@ league returned `200 EXECUTED` on 2026-09-08. The confirmation token survived
 across two separate CLI processes, the re-read-before-write guard held, and the
 audit log captured intent and outcome with credentials redacted.
 
-Add/drop and waiver writes are built and their payloads validated by ESPN's own
-parser, but have not yet been fired authenticated. Trades are designed, not
-built.
+**Add/drop is proven.** An add paired with a drop was applied by ESPN on
+2026-09-24; an add onto a full roster was rejected by ESPN and reported as
+such, with nothing changed.
+
+Waiver claims are built and their payloads validated by ESPN's own parser, but
+have not yet been fired authenticated. Trades are designed, not built.
 
 ## Before you use this
 
@@ -251,6 +290,12 @@ but that is not permission to drive the private API from outside.
 
 **`espn_s2` is a full ESPN/Disney session cookie, not a scoped token.** Leaking
 it is account compromise. Never paste it into an issue, a chat, or a screenshot.
+
+## Contributing
+
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Security
+reports go through [SECURITY.md](SECURITY.md), privately. Changes are in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 

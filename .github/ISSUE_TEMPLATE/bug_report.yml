@@ -1,0 +1,45 @@
+name: Bug report
+description: Something returned the wrong answer, errored, or did the wrong thing
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste your `espn_s2` or `SWID` cookies, your credentials file, or an unredacted audit log.** `espn_s2` is a full ESPN session — anyone holding it is signed in as you. Security problems go through [private reporting](https://github.com/gagandaroach/fantasy-yolo/security/advisories/new), not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command or tool call, what you expected, and what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: The response or error. Team and player names are fine; cookies are not.
+      render: json
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Interface
+      options: [CLI (fy), MCP server]
+    validations:
+      required: true
+  - type: dropdown
+    id: write
+    attributes:
+      label: Was this a write?
+      options: ["No — a read", "Yes — preview only", "Yes — execute"]
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: MCP client, if any
+      placeholder: Claude Code, Claude Desktop, Cursor…
+  - type: input
+    id: version
+    attributes:
+      label: Commit or version
+      placeholder: git rev-parse --short HEAD

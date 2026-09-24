@@ -48,8 +48,8 @@ def test_budget_rows_are_ordered_by_money_available():
 
 
 def test_resolve_team_matches_on_substring():
-    teams = [_FakeTeam("The white Bhatoyas", 1), _FakeTeam("Hanuman Homies", 2)]
-    assert resolve_team("bhatoyas", teams).team_id == 1
+    teams = [_FakeTeam("Gridiron Gremlins", 1), _FakeTeam("Touchdown Tacos", 2)]
+    assert resolve_team("gremlins", teams).team_id == 1
 
 
 def test_resolve_team_reports_ambiguity_rather_than_guessing():
